@@ -5,111 +5,43 @@
 <title>タイムカード残業計算</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
-  margin:16px;
-  background:#f7f7f7;
-}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;margin:16px;background:#f7f7f7}
 h2{margin-bottom:8px}
-.card{
-  background:#fff;
-  border:1px solid #ddd;
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:12px;
-}
-input,button{
-  font-size:16px;
-  padding:8px;
-}
-button{
-  border-radius:10px;
-  border:1px solid #ccc;
-  background:#fff;
-  cursor:pointer;
-  margin:4px;
-}
-button.primary{
-  background:#2563eb;
-  color:#fff;
-  border-color:#2563eb;
-}
-button.calc{
-  background:#dc2626;
-  color:#fff;
-  border-color:#dc2626;
-}
-table{
-  border-collapse:collapse;
-  width:100%;
-  margin-top:12px;
-  background:#fff;
-}
-td,th{
-  border:1px solid #ccc;
-  padding:6px;
-  text-align:center;
-}
-th{
-  background:#e5e7eb;
-}
-td input{
-  width:90px;
-  text-align:center;
-}
-tr.overtime{
-  background:#fff7cc;
-}
-tr.no-overtime{
-  background:#fff;
-}
-.endInput{
-  font-size:20px;
-  font-weight:bold;
-  color:#b91c1c;
-}
-.ot{
-  font-weight:bold;
-  color:#b91c1c;
-}
-.pay{
-  font-weight:bold;
-}
-.total{
-  font-size:22px;
-  font-weight:bold;
-  color:#b91c1c;
-  margin-top:12px;
-}
-#status{
-  margin-top:8px;
-  color:#065f46;
-  font-weight:bold;
-}
-.note{
-  font-size:13px;
-  color:#555;
-  line-height:1.6;
-}
+.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:14px;margin-bottom:12px}
+input,button{font-size:16px;padding:8px}
+button{border-radius:10px;border:1px solid #ccc;background:#fff;cursor:pointer;margin:4px}
+button.primary{background:#2563eb;color:#fff;border-color:#2563eb}
+button.calc{background:#dc2626;color:#fff;border-color:#dc2626}
+button.save{background:#16a34a;color:#fff;border-color:#16a34a}
+table{border-collapse:collapse;width:100%;margin-top:12px;background:#fff}
+td,th{border:1px solid #ccc;padding:6px;text-align:center}
+th{background:#e5e7eb}
+td input{width:90px;text-align:center}
+tr.overtime{background:#fff7cc}
+.endInput{font-size:20px;font-weight:bold;color:#b91c1c}
+.ot{font-weight:bold;color:#b91c1c}
+.pay{font-weight:bold}
+.total{font-size:22px;font-weight:bold;color:#b91c1c;margin-top:12px}
+.saved{font-size:18px;font-weight:bold;color:#166534;line-height:1.7}
+#status{margin-top:8px;color:#065f46;font-weight:bold}
+.note{font-size:13px;color:#555;line-height:1.6}
 </style>
 </head>
 <body>
 
-<h2>タイムカード残業計算</h2>
+<h2>タイムカード残業計算 Ver.1.1</h2>
 
 <div class="card">
   <p class="note">
-    ① 8桁パスワードを入力<br>
-    ② タイムカード写真（表・裏）を選択<br>
-    ③ AIで読み取り<br>
-    ④ 退勤時間を確認・修正<br>
-    ⑤ 残業計算
+    ① 表面を読み取り → 修正 →「表を確定」<br>
+    ② 裏面を読み取り → 修正 →「残業計算」<br>
+    ③ 表＋裏の合計が表示されます
   </p>
 
-  <p>パスワード</p>
+  <p>8桁パスワード</p>
   <input id="password" type="password" maxlength="8" inputmode="numeric" placeholder="8桁数字">
 
-  <p>タイムカード写真（表面・裏面）</p>
+  <p>タイムカード写真</p>
   <input type="file" id="files" accept="image/*" multiple>
 
   <p>残業単価</p>
@@ -118,16 +50,24 @@ tr.no-overtime{
   <br><br>
   <button class="primary" onclick="analyze()">① AIで読み取り</button>
   <button class="calc" onclick="calc()">② 残業計算</button>
-  <button onclick="clearTable()">クリア</button>
+  <button class="save" onclick="saveFront()">表を確定</button>
+  <button onclick="clearCurrent()">現在の表をクリア</button>
+  <button onclick="clearAll()">全部クリア</button>
 
   <div id="status"></div>
 </div>
 
 <div class="card">
+  <div class="saved" id="savedFront">
+    表の確定：まだありません
+  </div>
+</div>
+
+<div class="card">
   <p class="note">
     ※ 黄色の行が残業対象です。<br>
-    ※ AIの読み取りは完全ではありません。特に退勤時間を確認してください。<br>
-    ※ 残業は18:30以降、10分単位切り捨てで計算します。
+    ※ 時間を修正すると、自動で残業時間・金額が変わります。<br>
+    ※ 残業は18:30以降、10分単位切り捨てです。
   </p>
 
   <table id="table">
@@ -144,17 +84,20 @@ tr.no-overtime{
     <tbody></tbody>
   </table>
 
-  <p class="total" id="total"></p>
+  <p class="total" id="currentTotal"></p>
+  <p class="total" id="grandTotal"></p>
 </div>
 
 <script>
-const WORKER_URL = "https://timecard-ai.gudafutanu.workers.dev/analyze";
+const WORKER_URL = "https://timecard-ai.gudafutanu.workers.dev";
+
+let savedMinutes = 0;
+let savedPay = 0;
 
 function timeToMin(t){
   if(!t) return null;
   t = String(t).replace(/[：.]/g, ":").trim();
 
-  // 1941 → 19:41 のような入力も許可
   if(/^\d{3,4}$/.test(t)){
     const s = t.padStart(4,"0");
     return Number(s.slice(0,2))*60 + Number(s.slice(2));
@@ -165,19 +108,13 @@ function timeToMin(t){
 
   const h = Number(m[1]);
   const min = m[2] ? Number(m[2]) : 0;
-
   if(h < 0 || h > 23 || min < 0 || min > 59) return null;
+
   return h * 60 + min;
 }
 
 function minToHour(min){
   return Math.floor(min/60) + ":" + String(min%60).padStart(2,"0");
-}
-
-function normalizeTime(t){
-  const m = timeToMin(t);
-  if(m === null) return "";
-  return Math.floor(m/60) + ":" + String(m%60).padStart(2,"0");
 }
 
 async function fileToBase64(file){
@@ -201,8 +138,7 @@ async function analyze(){
     return;
   }
 
-  document.getElementById("status").textContent =
-    "AI読み取り中です。少し待ってください…";
+  document.getElementById("status").textContent = "AI読み取り中です…";
 
   const images = [];
   for(const f of files){
@@ -218,16 +154,14 @@ async function analyze(){
 
     if(res.status === 403){
       alert("パスワードが違います");
-      document.getElementById("status").textContent = "パスワードエラー";
       return;
     }
 
     const data = await res.json();
 
     if(!data.days){
-      document.getElementById("status").textContent = "読み取りに失敗しました";
+      alert("読み取りに失敗しました");
       console.log(data);
-      alert("読み取りに失敗しました。画像を撮り直してください。");
       return;
     }
 
@@ -237,40 +171,24 @@ async function analyze(){
     data.days.forEach(d=>{
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><input type="checkbox" checked></td>
-        <td><input value="${d.date ?? ""}"></td>
-        <td><input value="${d.start ?? ""}"></td>
-        <td><input class="endInput" value="${d.end ?? ""}" oninput="previewRow(this)"></td>
+        <td><input type="checkbox" checked onchange="calc()"></td>
+        <td><input value="${d.date ?? ""}" oninput="calc()"></td>
+        <td><input value="${d.start ?? ""}" oninput="calc()"></td>
+        <td><input class="endInput" value="${d.end ?? ""}" oninput="calc()"></td>
         <td class="ot"></td>
         <td class="pay"></td>
       `;
       tbody.appendChild(tr);
-      previewRow(tr.querySelector(".endInput"));
     });
 
     document.getElementById("status").textContent =
-      "読み取り完了。黄色の行と退勤時間を確認してください。";
+      "読み取り完了。退勤時間を確認してください。";
 
     calc();
 
   }catch(e){
-    document.getElementById("status").textContent = "通信エラー";
     alert("通信エラーです。Worker URLやネット接続を確認してください。");
     console.error(e);
-  }
-}
-
-function previewRow(el){
-  const tr = el.closest("tr");
-  const end = timeToMin(el.value);
-  const base = 18*60 + 30;
-
-  if(end && end > base){
-    tr.classList.add("overtime");
-    tr.classList.remove("no-overtime");
-  }else{
-    tr.classList.remove("overtime");
-    tr.classList.add("no-overtime");
   }
 }
 
@@ -278,13 +196,12 @@ function calc(){
   const rate = Number(document.getElementById("rate").value || 0);
   const base = 18*60 + 30;
 
-  let totalMin = 0;
-  let totalPay = 0;
+  let currentMin = 0;
+  let currentPay = 0;
 
   document.querySelectorAll("#table tbody tr").forEach(tr=>{
     const checked = tr.querySelector("input[type=checkbox]").checked;
     const inputs = tr.querySelectorAll("td input");
-
     const endInput = inputs[3];
     const end = timeToMin(endInput.value);
 
@@ -300,20 +217,52 @@ function calc(){
     tr.querySelector(".ot").textContent = ot ? minToHour(ot) : "";
     tr.querySelector(".pay").textContent = pay ? pay.toLocaleString()+"円" : "";
 
-    totalMin += ot;
-    totalPay += pay;
+    if(ot > 0){
+      tr.classList.add("overtime");
+    }else{
+      tr.classList.remove("overtime");
+    }
 
-    previewRow(endInput);
+    currentMin += ot;
+    currentPay += pay;
   });
 
-  document.getElementById("total").textContent =
-    `合計残業時間：${minToHour(totalMin)}　合計残業代：${totalPay.toLocaleString()}円`;
+  document.getElementById("currentTotal").textContent =
+    `現在の表：${minToHour(currentMin)}　${currentPay.toLocaleString()}円`;
+
+  document.getElementById("grandTotal").textContent =
+    `表＋裏 合計：${minToHour(savedMinutes + currentMin)}　${(savedPay + currentPay).toLocaleString()}円`;
+
+  return { currentMin, currentPay };
 }
 
-function clearTable(){
-  if(!confirm("表をクリアしますか？")) return;
+function saveFront(){
+  const result = calc();
+
+  savedMinutes = result.currentMin;
+  savedPay = result.currentPay;
+
+  document.getElementById("savedFront").innerHTML =
+    `表を確定しました<br>残業時間：${minToHour(savedMinutes)}<br>残業代：${savedPay.toLocaleString()}円`;
+
+  alert("表を確定しました。次に裏面を読み取ってください。");
+}
+
+function clearCurrent(){
+  if(!confirm("現在の表だけクリアしますか？")) return;
   document.querySelector("#table tbody").innerHTML = "";
-  document.getElementById("total").textContent = "";
+  document.getElementById("currentTotal").textContent = "";
+  calc();
+}
+
+function clearAll(){
+  if(!confirm("表の確定分も含めて全部クリアしますか？")) return;
+  savedMinutes = 0;
+  savedPay = 0;
+  document.querySelector("#table tbody").innerHTML = "";
+  document.getElementById("savedFront").textContent = "表の確定：まだありません";
+  document.getElementById("currentTotal").textContent = "";
+  document.getElementById("grandTotal").textContent = "";
   document.getElementById("status").textContent = "";
 }
 </script>
