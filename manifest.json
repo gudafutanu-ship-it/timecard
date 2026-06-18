@@ -1,0 +1,25 @@
+{
+  "name": "アイデアメモ",
+  "short_name": "アイデア",
+  "description": "アイデアを保存し、HTML化できるか判定するiPhone用メモアプリ",
+  "start_url": "./idea_app_iphone_github.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#111827",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
